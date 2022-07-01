@@ -1,7 +1,7 @@
 import io
 from itertools import product
 
-from lattice_model import index_in_lattice, LatticeModel
+from lattice.lattice_model import index_in_lattice, LatticeModel
 
 
 symbol_dict = dict([(-1, "⊖"), (0, "?"), (1, "⊕")])
@@ -71,7 +71,6 @@ class LatticeModelState:
         sum = 0
         for sol in self.iter_solutions():
             weight = sol.compute_weight()
-            # sol.print()
             sum += weight
         return sum
 

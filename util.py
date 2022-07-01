@@ -1,3 +1,4 @@
+import os
 import sys
 from subprocess import call
 
@@ -16,7 +17,7 @@ def wtv(word):
 
 
 def get_image(state, show=True, name="out.png"):
-    f = open('tikz.tex', 'w')
+    f = open('tikz/tikz.tex', 'w')
     f.write(
         """\\documentclass{standalone}
         \\usepackage{tikz}
@@ -44,9 +45,25 @@ def get_image(state, show=True, name="out.png"):
     state.write_tikz(f)
     f.write("\n\\end{document}\n")
     f.close()
+    olddir = os.getcwd()
+    os.chdir('tikz')
     p = call(["pdflatex", 'tikz.tex'], stdout=sys.stderr)
-    call(["inkscape", '--export-width=512', '--export-filename=' + name, 'tikz.pdf'])
+    os.chdir(olddir)
+    call(["inkscape", '--export-width=512', '--export-filename=out/' + name, 'tikz/tikz.pdf'])
 
     if show:
-        img = Image.open(name)
+        img = Image.open('out/' + name)
         img.show()
+
+
+def setup_directories():
+    if not os.path.isdir('tikz'):
+        try:
+            os.mkdir('tikz')
+        except OSError:
+            pass
+    if not os.path.isdir('out'):
+        try:
+            os.mkdir('out')
+        except OSError:
+            pass
