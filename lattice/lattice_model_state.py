@@ -1,14 +1,13 @@
 import io
 from itertools import product
 
-from lattice.lattice_model import index_in_lattice, LatticeModel
-
+from lattice.lattice_model import index_in_lattice, LatticeModel, VertexInterface
 
 symbol_dict = dict([(-1, "⊖"), (0, "?"), (1, "⊕")])
 tikz_dict = dict([(-1, "-"), (0, " "), (1, "+")])
 
 
-class StateVertex:
+class StateVertex(VertexInterface):
     def __init__(self, row, col, state):
         self.r = row
         self.c = col
@@ -23,13 +22,14 @@ class StateVertex:
     def get_all(self):
         return [self.get(i) for i in range(4)]
 
+    def get_all_indices(self):
+        return [index_in_lattice(self.r, self.c, i, self.state.latmod) for i in range(4)]
+
 
 class LatticeModelState:
     def __init__(self, latmod: LatticeModel):
         self.latmod = latmod
-
-        values_length = self.latmod.offset * self.latmod.rows + self.latmod.cols
-        self.values = [0 for i in range(values_length)]
+        self.values = [0 for i in range(self.latmod.values_length)]
 
     def get_vertex(self, r, c):
         return StateVertex(r, c, self)
@@ -74,20 +74,39 @@ class LatticeModelState:
             sum += weight
         return sum
 
-    def iter_solutions(self):
-        unset_indices = []
-        for (i, val) in enumerate(self.values):
-            if val == 0:
-                unset_indices.append(i)
+    def iter_solutions(self, unset_indices=None, start=0):
+        if unset_indices is None:
+            unset_indices = []
+            for (i, val) in enumerate(self.values):
+                if val == 0:
+                    unset_indices.append(i)
+        if start >= len(unset_indices):
+            yield self
+        else:
+            j = unset_indices[start]
+            self.values[j] = -1
+            if not self.bad_change(j, unset_indices, start):
+                yield from self.iter_solutions(unset_indices, start + 1)
+            self.values[j] = 1
+            if not self.bad_change(j, unset_indices, start):
+                yield from self.iter_solutions(unset_indices, start + 1)
 
-        copy = LatticeModelState(self.latmod)
-        copy.values = self.values.copy()
-
-        for values in product([-1, 1], repeat=len(unset_indices)):
-            for (i, val) in enumerate(values):
-                copy.values[unset_indices[i]] = val
-            if copy.is_valid():
-                yield copy
+    def bad_change(self, i, unset_indices, start):
+        for r, c in self.latmod.adjacent_vertices(i):
+            current = self.get_vertex(r, c)
+            # unset potentially set values
+            for i in current.get_all_indices():
+                # uses fact that unset_indices is ordered
+                if i > unset_indices[start] and i in unset_indices:
+                    self.values[i] = 0
+            matches_something = False
+            for v in self.latmod.verts:
+                if current.can_realize(v):
+                    matches_something = True
+                    break
+            if not matches_something:
+                return True
+        return False
 
     def print(self):
         out = io.StringIO()
