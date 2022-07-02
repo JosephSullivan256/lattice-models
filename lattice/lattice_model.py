@@ -1,31 +1,4 @@
-from abc import abstractmethod
 from itertools import chain
-
-from util import wtv
-
-
-class VertexInterface:
-    @abstractmethod
-    def get_all(self):
-        pass
-
-    def can_realize(self, vert):
-        values = self.get_all()
-        other_values = vert.get_all()
-        for i in range(4):
-            if values[i] != 0 and values[i] != other_values[i]:
-                return False
-        return True
-
-
-class Vertex(VertexInterface):
-    def __init__(self, values_word, weight):
-        self.values = wtv(values_word)
-        # should be lambda of row/col
-        self.weight = weight
-
-    def get_all(self):
-        return self.values
 
 
 class LatticeModel:

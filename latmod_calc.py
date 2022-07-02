@@ -3,7 +3,8 @@ from functools import reduce
 from sympy import symbols
 import argparse
 
-from lattice.lattice_model import Vertex, LatticeModel
+from lattice.lattice_model import LatticeModel
+from lattice.vertex import Vertex
 from lattice.lattice_model_state import LatticeModelState
 
 from util import wtv, get_image, setup_directories
@@ -19,16 +20,16 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    admissable_verts = [
-        Vertex("++++", lambda r, c: 1),
-        Vertex("----", lambda r, c: 0),
-        Vertex("-+-+", lambda r, c: 1),
-        Vertex("+-+-", lambda r, c: symbols('z' + str(r + 1))),
-        Vertex("++--", lambda r, c: symbols('z' + str(r + 1))),
-        Vertex("--++", lambda r, c: 1)
+    admissable_h_verts = [
+        Vertex("++++", lambda r: 1),
+        Vertex("----", lambda r: 0),
+        Vertex("-+-+", lambda r: 1),
+        Vertex("+-+-", lambda r: symbols('z' + str(r))),
+        Vertex("++--", lambda r: symbols('z' + str(r))),
+        Vertex("--++", lambda r: 1)
     ]
 
-    latmod = LatticeModel(args.rows, args.cols, admissable_verts)
+    latmod = LatticeModel(args.rows, args.cols, admissable_h_verts)
     state = LatticeModelState(latmod)
     state.set_boundary(wtv(args.boundary))
 

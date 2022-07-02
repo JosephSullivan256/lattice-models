@@ -1,7 +1,8 @@
 import io
 from itertools import product
 
-from lattice.lattice_model import index_in_lattice, LatticeModel, VertexInterface
+from lattice.lattice_model import index_in_lattice, LatticeModel
+from lattice.vertex import VertexInterface
 
 symbol_dict = dict([(-1, "⊖"), (0, "?"), (1, "⊕")])
 tikz_dict = dict([(-1, "-"), (0, " "), (1, "+")])
@@ -64,7 +65,7 @@ class LatticeModelState:
                 current = self.get_vertex(r, c).get_all()
                 for v in self.latmod.verts:
                     if current == v.values:
-                        product *= v.weight(r, c)
+                        product *= v.weight(r+1)
         return product
 
     def compute_partition_function(self):
